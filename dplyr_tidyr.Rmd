@@ -7,16 +7,92 @@ output: html_document
 ```{r}
 library(readxl)
 library(dplyr)
-years1 = excel_sheets('Student-rolls-by-School-2000-2008b.xlsx')
-a1 = lapply(years1, function(x) { read_excel('Student-rolls-by-School-2000-2008b.xlsx', skip=3, sheet=x) %>% mutate(Year = x) %>% filter(!is.na(`School ID`)) })
-years2 = excel_sheets('Student-rolls-by-School-2009-2017b.xlsx')
-a2 = lapply(years2, function(x) { read_excel('Student-rolls-by-School-2009-2017b.xlsx', skip=3, sheet=x) %>% mutate(Year = x) %>% filter(!is.na(`School ID`)) })
-all = bind_rows(a1, a2)
-
+library(tidyr)
 # yay, this looks like everything, saved the values with zero in it. Let's do some checking though
-all = read_excel('~/Massey/Roll-by-FYL-and-Ethnic-Group-2007-2017_fullsheet.xlsx', sheet="all_data")
+all = read_excel('Roll-by-FYL-and-Ethnic-Group-2007-2017_fullsheet.xlsx', sheet="all_data")
+
+# grab the schools
 schools = all %>% select(`School: ID`, `School: Name`:`Region: MOE Local office`, -`School: Decile`) %>% unique
-schools %>% select(`School: ID`, `School: Name`) %>% unique() %>% group_by(`School: Name`) %>% mutate(count = n()) %>% filter(count > 1)
+schools = schools %>% rename_at(vars(starts_with("School: "), starts_with("Region: ")), function(x) { substring(x, 9)} ) %>%
+  select(-`Education Region`, -`MOE Local office`) %>% 
+  rename(SchoolID = ID, SchoolName = Name) %>%
+  rename_all(funs(stringr::str_replace_all(., ' ', ''))) %>%
+  arrange(SchoolID)
+
+# and now the student rolls
+roll = all %>% select(starts_with('Year'), starts_with('Student'), `School: ID`, `School: Name`) %>%
+  rename_at(vars(starts_with("Student: ")), function(x) { substring(x, 10) } ) %>%
+  rename(SchoolID = `School: ID`, SchoolName = `School: Name`,
+         EthnicGroup = `Ethnic Group`, Year = `Year: As at 1 July`, Students = `Students (∑ Values)`,
+         Level = `Year level`) %>%
+  select(-`Year level group`) %>%
+  select(SchoolID, SchoolName, Year, Gender, EthnicGroup, Level, Students) %>%
+  arrange(SchoolID, Year, Level)
+
+# Save for later
+saveRDS(roll, 'data/roll.rds')
+saveRDS(schools, 'data/schools.rds')
+
+# TODO: Could potentially expand to include zeros, but no real point in doing so.
 ```
 
-Find the shit that's common to all schools
+Things we can do:
+
+## summarise
+
+How many rows do we have in total?
+
+How many students?
+
+What is the mean, sd number of students per gender, ethnicity, school, year level and year?
+
+```{r}
+roll %>% summarise(Rows = n(), Total = sum(`Students (∑ Values)`))
+roll %>% summarise(Rows = n(), Mean = mean(`Students (∑ Values)`), Min = min(`Students (∑ Values)`))
+```
+
+## arrange
+
+
+- top_n()
+
+
+## filter
+
+rolls:
+
+Find all Year 14/15 students.
+Find all Students of Ethnicity <foo>
+Find all male students in 2017
+
+schools:
+
+## select/rename
+
+rolls:
+
+Retrieve just the number of students, their gender, and ethnic groups.
+
+## mutate
+
+Create primary/secondary column.
+Collapse ethnic groups?
+Collapse last 3 years?
+Convert ID to a factor.
+
+## arrange
+
+Find the entry with the most students.
+Find the first school alphabetically.
+Arrange the data by year level.
+
+
+
+
+## group_by
+
+
+
+
+```{r}
+```
