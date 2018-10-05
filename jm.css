@@ -5,6 +5,40 @@
   transform: translate(-50%, -50%);
 }
 
+.atbottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translate(-50%, 0);
+}
+
+.atright {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translate(0, -50%);
+}
+
+.topright {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.bottomright {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.tiny {
+  font-size: 60%;
+}
+
 .smallfonts {
   font-size: 80%;
+}
+
+.huge {
+  font-size: 300%;
 }
