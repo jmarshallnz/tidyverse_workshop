@@ -9,30 +9,47 @@ library(readxl)
 library(dplyr)
 library(tidyr)
 # yay, this looks like everything, saved the values with zero in it. Let's do some checking though
-all = read_excel('Roll-by-FYL-and-Ethnic-Group-2007-2017_fullsheet.xlsx', sheet="all_data")
+all = read_excel('Roll-by-FYL-and-Ethnic-Group-2007-2017_fullsheet.xlsx', sheet="all_data") %>%
+  filter(`Year: As at 1 July` == 2017)
 
 # grab the schools
-schools = all %>% select(`School: ID`, `School: Name`:`Region: MOE Local office`, -`School: Decile`) %>% unique
+schools = all %>% select(`School: ID`, `School: Name`:`Region: MOE Local office`) %>% unique
 schools = schools %>% rename_at(vars(starts_with("School: "), starts_with("Region: ")), function(x) { substring(x, 9)} ) %>%
-  select(-`Education Region`, -`MOE Local office`) %>% 
-  rename(SchoolID = ID, SchoolName = Name) %>%
+  select(-ID, -`Education Region`, -`MOE Local office`) %>% 
+  rename(SchoolName = Name, SchoolGender = Gender) %>%
   rename_all(funs(stringr::str_replace_all(., ' ', ''))) %>%
-  arrange(SchoolID)
+  arrange(SchoolName) %>%
+  mutate(RegionalCouncil = stringr::str_replace(RegionalCouncil, " Region", ""),
+         TerritorialAuthority = stringr::str_replace(TerritorialAuthority, " City", ""),
+         TerritorialAuthority = stringr::str_replace(TerritorialAuthority, " District", ""),
+         TerritorialAuthority = stringr::str_replace(TerritorialAuthority, "Auckland- ", "Auckland: "),
+         KuraType = stringr::str_replace(KuraType, " \\(Section 15[5-6]\\)", ""))
 
 # and now the student rolls
-roll = all %>% select(starts_with('Year'), starts_with('Student'), `School: ID`, `School: Name`) %>%
+roll = all %>% select(starts_with('Student'), `School: ID`, `School: Name`) %>%
   rename_at(vars(starts_with("Student: ")), function(x) { substring(x, 10) } ) %>%
   rename(SchoolID = `School: ID`, SchoolName = `School: Name`,
-         EthnicGroup = `Ethnic Group`, Year = `Year: As at 1 July`, Students = `Students (∑ Values)`,
+         EthnicGroup = `Ethnic Group`, Students = `Students (∑ Values)`,
          Level = `Year level`) %>%
   select(-`Year level group`) %>%
-  select(SchoolID, SchoolName, Year, Gender, EthnicGroup, Level, Students) %>%
-  arrange(SchoolID, Year, Level)
+  select(SchoolName, Gender, EthnicGroup, Level, Students) %>%
+  arrange(SchoolName, Level) %>%
+  mutate(EthnicGroup = case_when(EthnicGroup == "European\\Pākehā" ~ "European",
+                                 TRUE ~ EthnicGroup))
+
+# tidy up some fields
+
 
 # Save for later
-saveRDS(roll, 'data/roll.rds')
-saveRDS(schools, 'data/schools.rds')
+saveRDS(roll, 'data/roll_with_macrons.rds')
+saveRDS(schools, 'data/schools_with_macrons.rds')
 
+# Remove the macrons
+roll_nm = roll %>% mutate(EthnicGroup = case_when(EthnicGroup == 'Māori' ~ "Maori", TRUE ~ EthnicGroup))
+schools_nm = schools %>% mutate(KuraType = case_when(KuraType == 'Kura Kupapa Māori' ~ "Kura Kupapa Maori", TRUE ~ KuraType))
+
+saveRDS(roll_nm, 'data/roll.rds')
+saveRDS(schools_nm, 'data/schools.rds')
 # TODO: Could potentially expand to include zeros, but no real point in doing so.
 ```
 
