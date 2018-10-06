@@ -16,24 +16,25 @@ all = read_excel('Roll-by-FYL-and-Ethnic-Group-2007-2017_fullsheet.xlsx', sheet=
 schools = all %>% select(`School: ID`, `School: Name`:`Region: MOE Local office`) %>% unique
 schools = schools %>% rename_at(vars(starts_with("School: "), starts_with("Region: ")), function(x) { substring(x, 9)} ) %>%
   select(-ID, -`Education Region`, -`MOE Local office`) %>% 
-  rename(SchoolName = Name, SchoolGender = Gender) %>%
+  rename(School = Name, SchoolGender = Gender) %>%
   rename_all(funs(stringr::str_replace_all(., ' ', ''))) %>%
-  arrange(SchoolName) %>%
+  arrange(School) %>%
   mutate(RegionalCouncil = stringr::str_replace(RegionalCouncil, " Region", ""),
          TerritorialAuthority = stringr::str_replace(TerritorialAuthority, " City", ""),
          TerritorialAuthority = stringr::str_replace(TerritorialAuthority, " District", ""),
          TerritorialAuthority = stringr::str_replace(TerritorialAuthority, "Auckland- ", "Auckland: "),
-         KuraType = stringr::str_replace(KuraType, " \\(Section 15[5-6]\\)", ""))
+         KuraType = stringr::str_replace(KuraType, " \\(Section 15[5-6]\\)", ""),
+         Decile = readr::parse_number(Decile))
 
 # and now the student rolls
 roll = all %>% select(starts_with('Student'), `School: ID`, `School: Name`) %>%
   rename_at(vars(starts_with("Student: ")), function(x) { substring(x, 10) } ) %>%
-  rename(SchoolID = `School: ID`, SchoolName = `School: Name`,
+  rename(SchoolID = `School: ID`, School = `School: Name`,
          EthnicGroup = `Ethnic Group`, Students = `Students (∑ Values)`,
          Level = `Year level`) %>%
   select(-`Year level group`) %>%
-  select(SchoolName, Gender, EthnicGroup, Level, Students) %>%
-  arrange(SchoolName, Level) %>%
+  select(School, Gender, EthnicGroup, Level, Students) %>%
+  arrange(School, Level) %>%
   mutate(EthnicGroup = case_when(EthnicGroup == "European\\Pākehā" ~ "European",
                                  TRUE ~ EthnicGroup))
 
