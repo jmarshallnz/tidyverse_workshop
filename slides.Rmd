@@ -10,7 +10,7 @@ output:
       highlightStyle: github
       highlightLines: true
       countIncrementalSlides: false
-    css: ["default", "jm.css"]
+    css: ["default", "default-fonts", "jm.css"]
 ---
 
 ```{r setup, echo=FALSE, message=FALSE}
@@ -30,16 +30,16 @@ Install the complete tidyverse with:
 install.packages("tidyverse")
 ```
 
-Grab the markdown file:
+Grab the zip file for todays tutorial, unzip, and load up `tidyverse.Rmd`
 
-http://shiny.massey.ac.nz/jcmarsha/tidyverse.Rmd
+http://shiny.massey.ac.nz/jcmarsha/tidyverse.zip
 
 Run the first chunk to load the libraries/data.
 
 ```{r, eval=FALSE, tidy=FALSE}
 library(tidyverse)
-schools=readRDS('http://shiny.massey.ac.nz/jcmarsha/tidy/schools.rds')
-roll=readRDS('http://shiny.massey.ac.nz/jcmarsha/tidy/roll.rds')
+roll = readRDS('data/roll.rds')
+schools = readRDS('data/schools.rds')
 ```
 
 ---
@@ -275,6 +275,12 @@ roll %>% arrange(Gender, EthnicGroup, desc(Level))
 knitr::include_graphics('https://media.giphy.com/media/xUPGcz2H1TXdCz4suY/giphy.gif')
 ```
 ]
+
+---
+class: center middle inverse
+
+# Your turn
+
 ---
 
 # top_n
@@ -283,10 +289,12 @@ knitr::include_graphics('https://media.giphy.com/media/xUPGcz2H1TXdCz4suY/giphy.
 roll %>% top_n(3, Students)
 ```
 
---
+---
+
+# select
 
 ```{r}
-roll %>% filter(rank(desc(Students)) <= 3)
+roll %>% select(School, EthnicGroup, Students)
 ```
 
 ---
@@ -294,15 +302,7 @@ roll %>% filter(rank(desc(Students)) <= 3)
 # select
 
 ```{r}
-roll %>% select(SchoolName, EthnicGroup, Students)
-```
-
----
-
-# select
-
-```{r}
-roll %>% select(-SchoolName)
+roll %>% select(-School)
 ```
 
 ---
@@ -361,6 +361,10 @@ clean
 knitr::include_graphics('https://media.giphy.com/media/WTiMvyam361C8/giphy.gif')
 ```
 ]
+---
+class: center middle inverse
+
+# Your turn
 
 ---
 
@@ -379,9 +383,10 @@ How many students were in year 13 at Awatapu College in 2017?
 
 ```{r}
 clean %>%
-  filter(SchoolName == "Awatapu College", Level == 13) %>%
+  filter(School == "Awatapu College", Level == 13) %>%
   summarise(Students = sum(Students))
 ```
+
 ---
 
 # group_by
@@ -391,11 +396,11 @@ clean %>%
 All other verbs then operate per-group.
 
 ```{r}
-clean %>% group_by(SchoolName) %>% head
+clean %>% group_by(School) %>% head
 ```
 --
 ```{r}
-clean %>% group_by(SchoolName) %>% class
+clean %>% group_by(School) %>% class
 ```
 
 ---
@@ -403,7 +408,7 @@ clean %>% group_by(SchoolName) %>% class
 # group_by
 
 ```{r}
-clean %>% group_by(SchoolName) %>%
+clean %>% group_by(School) %>%
   summarise(Students = sum(Students))
 ```
 
@@ -414,7 +419,7 @@ clean %>% group_by(SchoolName) %>%
 ```{r}
 clean %>%
   filter(Level >= 11) %>%
-  group_by(SchoolName, Level) %>%
+  group_by(School, Level) %>%
   summarise(Students = sum(Students))
 ```
 
@@ -425,7 +430,7 @@ clean %>%
 ```{r}
 clean %>%
   filter(EthnicGroup == "Pasifika") %>%
-  group_by(SchoolName, Gender) %>%
+  group_by(School, Gender) %>%
   summarise(Students = sum(Students)) %>%
   mutate(Total = sum(Students)) %>%
   arrange(desc(Total))
@@ -437,6 +442,11 @@ clean %>%
 knitr::include_graphics('https://media.giphy.com/media/19U2aQ323iGtO/giphy.gif')
 ```
 ]
+---
+class: center middle inverse
+
+# Your turn
+
 ---
 class: center inverse middle
 
@@ -517,7 +527,10 @@ long %>% group_by(id) %>% summarise(lowest=min(value))
 ```{r}
 long %>% spread(week, value)
 ```
---
+---
+
+# spread
+
 Using numbers for columns can be a bit fiddly to work with.
 
 ```{r}
@@ -533,7 +546,7 @@ A separator codes the columns as `<key_name><sep><key_value>`.
 ```{r}
 clean %>%
   filter(EthnicGroup == "Pasifika") %>%
-  group_by(SchoolName, Gender) %>%
+  group_by(School, Gender) %>%
   summarise(Students = sum(Students)) %>%
   spread(Gender, Students) %>%
   mutate(Total = Male + Female) %>%
@@ -546,6 +559,11 @@ clean %>%
 knitr::include_graphics('https://media.giphy.com/media/6y17pgEsBdN7y/giphy.gif')
 ```
 ]
+
+---
+class: center middle inverse
+
+# Your turn
 
 ---
 class: middle inverse center
@@ -575,10 +593,10 @@ There's 5 other joins:
 # left_join
 
 ```{r}
-clean %>% group_by(SchoolName) %>%
+clean %>% group_by(School) %>%
   summarise(Students = sum(Students)) %>%
-  left_join(schools, by='SchoolName') %>%
-  select(SchoolName, Students, TerritorialAuthority)
+  left_join(schools, by='School') %>%
+  select(School, Students, TerritorialAuthority)
 ```
 --
 .topright[
