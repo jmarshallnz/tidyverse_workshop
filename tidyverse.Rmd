@@ -227,14 +227,16 @@ There are five other joins in `dplyr`, and others in other packages:
 
 ```{r}
 all = clean %>% left_join(schools, by='School')
+all
 ```
 
 **Your turn**
 
 1. Find the number of students per regional council.
-2. Find the number of students of each ethnicity, ignoring international fee paying students in each regional council.
-3. How many students are in partnership (charter) schools? (See the `Authority` variable).
+2. Table up the number of students of each ethnicity, ignoring international fee paying students in each regional council.
+3. How many students of each ethnicity are in partnership (charter) schools? (See the `Authority` variable).
 4. How many girls and boys are in schools with a religious affiliation?
-5. Compare the ethnic makeup of secondary schools in Decile 10 versus those in Decile 1.
+5. Compare the ethnic makeup of secondary schools in Decile 10 versus those in Decile 1, excluding international fee paying students by producing a table of proportions by decile.
+6. Try and add a Total column to your table in 2.
 
 **What other things can you find using these data?**
