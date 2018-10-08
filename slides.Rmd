@@ -340,7 +340,7 @@ roll %>% select(Students, Level, everything())
 # select
 
 ```{r}
-roll %>% select(starts_with("School"), Students)
+roll %>% select(starts_with("S"))
 ```
 
 ---
