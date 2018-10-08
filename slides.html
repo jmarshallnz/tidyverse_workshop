@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Introduction to the tidyverse</title>
+    <meta charset="utf-8">
+    <meta name="author" content="Jonathan Marshall" />
+    <meta name="date" content="2018-10-09" />
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/default-fonts.css" rel="stylesheet" />
+    <link rel="stylesheet" href="jm.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Introduction to the tidyverse
+## dplyr and tidyr
+### Jonathan Marshall
+### 9 October 2018
+
+---
+
+
+
+
+# Getting started
+
+Load up [RStudio](https://www.rstudio.com/products/rstudio/).
+
+Install the complete tidyverse with:
+
+
+```r
+install.packages("tidyverse")
+```
+
+Grab the zip file for todays tutorial, unzip, and load up `tidyverse.Rmd`
+
+http://shiny.massey.ac.nz/jcmarsha/tidyverse.zip
+
+Run the first chunk to load the libraries/data.
+
+
+```r
+library(tidyverse)
+roll = readRDS('data/roll.rds')
+schools = readRDS('data/schools.rds')
+```
+
+---
+class: inverse, center, middle
+
+# The data
+---
+
+# roll
+
+Number of school kids by school, gender, ethnic group and level in 2017.
+
+Each row represents a school, gender, ethnic group and level.
+
+```r
+roll
+```
+
+```
+# A tibble: 99,021 x 5
+   School            Gender EthnicGroup Level  Students
+   &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;     &lt;dbl&gt;
+ 1 Abbotsford School Female Asian       Year 1        1
+ 2 Abbotsford School Female European    Year 1       19
+ 3 Abbotsford School Male   European    Year 1       14
+ 4 Abbotsford School Female Māori       Year 1       10
+ 5 Abbotsford School Male   Māori       Year 1        6
+ 6 Abbotsford School Female Asian       Year 2        1
+ 7 Abbotsford School Female European    Year 2       15
+ 8 Abbotsford School Male   European    Year 2       19
+ 9 Abbotsford School Female Māori       Year 2        3
+10 Abbotsford School Male   Māori       Year 2        2
+# ... with 99,011 more rows
+```
+
+Data source: https://www.educationcounts.govt.nz/statistics/schooling/student-numbers/6028
+---
+
+# schools
+
+Information on each school, including type, affiliation and region.
+
+```r
+schools
+```
+
+```
+# A tibble: 2,530 x 12
+   School Sector Type  Authority Decile SchoolGender AffiliationType
+   &lt;chr&gt;  &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;          
+ 1 Abbot… Prima… Full… State: N…      8 Co-Ed        No Affiliation 
+ 2 Aberd… Prima… Cont… State: N…      5 Co-Ed        No Affiliation 
+ 3 Aberf… Prima… Full… State: N…      2 Co-Ed        No Affiliation 
+ 4 ACG N… Secon… Seco… Private:…      7 Co-Ed        No Affiliation 
+ 5 ACG P… Compo… Comp… Private:…     NA Co-Ed        No Affiliation 
+ 6 ACG S… Secon… Seco… Private:…     NA Co-Ed        No Affiliation 
+ 7 ACG S… Compo… Comp… Private:…     NA Co-Ed        No Affiliation 
+ 8 ACG S… Compo… Comp… Private:…     NA Co-Ed        No Affiliation 
+ 9 ACG T… Compo… Comp… Private:…     NA Co-Ed        No Affiliation 
+10 Addin… Prima… Cont… State: N…      3 Co-Ed        No Affiliation 
+# ... with 2,520 more rows, and 5 more variables: Affiliation &lt;chr&gt;,
+#   Definition &lt;chr&gt;, KuraType &lt;chr&gt;, RegionalCouncil &lt;chr&gt;,
+#   TerritorialAuthority &lt;chr&gt;
+```
+
+Data source: https://www.educationcounts.govt.nz/statistics/schooling/student-numbers/6028
+---
+class: inverse, center, middle
+
+# tidyverse
+
+---
+
+# The tidyverse
+
+An **opinionated** collection of R packages designed for data science.
+
+All packages share an underlying design philosophy, grammar, and data structures.
+
+[https://tidyverse.org](https://tidyverse.org)
+
+---
+class: inverse
+background-image: url('images/opinion.jpg')
+background-size: contain
+---
+
+# There is a **right way** to do things
+
+Everything is a `data.frame`. 
+
+--
+All operations take a `data.frame` as their first argument and return a `data.frame`&lt;sup&gt;*&lt;/sup&gt; as output.
+  - This allows chaining operations together.
+  - This makes things predictable - you **always** get a `data.frame`&lt;sup&gt;*&lt;/sup&gt;.
+
+--
+
+All operations are **verbs** that don't have side effects.
+  - They don't alter the environment, print or plot.
+  - Naming things is hard.
+
+--
+
+Most of the time, this is what you want when processing data.
+
+Sometimes you want something other than a `data.frame` (e.g. a `vector` or `number`). There's sometimes a separate verb for that.
+
+.footnote[[*] Actually we use `tibble`'s as `data.frame`'s are not opinionated enough!]
+
+---
+class: inverse, center, middle
+
+# tibble
+---
+
+# What is a tibble?
+
+`data.frame` has some annoying habits.
+
+
+```r
+df = data.frame(x=c('low', 'medium', 'high'), y=1:3)
+str(df)
+```
+
+```
+'data.frame':	3 obs. of  2 variables:
+ $ x: Factor w/ 3 levels "high","low","medium": 2 3 1
+ $ y: int  1 2 3
+```
+
+--
+&lt;img src="https://media.giphy.com/media/iAYupOdWXQy5a4nVGk/giphy.gif" width="640" style="display: block; margin: auto;" /&gt;
+
+---
+# What is a tibble?
+
+`data.frame` has some annoying habits.
+
+.pull-left[
+
+```r
+df[,1]
+```
+
+```
+[1] low    medium high  
+Levels: high low medium
+```
+
+```r
+df[1,]
+```
+
+```
+    x y
+1 low 1
+```
+
+```r
+df[1,2]
+```
+
+```
+[1] 1
+```
+]
+--
+
+.bottomright[
+&lt;img src="https://media.giphy.com/media/y3QOvy7xxMwKI/giphy.gif" width="480" /&gt;
+]
+--
+
+.topright[
+&lt;img src="images/matrix_delete.png" width="480" /&gt;
+]
+
+---
+# What is a tibble?
+
+
+```r
+df = tibble(x=c('low', 'medium', 'high'), y=1:3)
+str(df)
+```
+
+```
+Classes 'tbl_df', 'tbl' and 'data.frame':	3 obs. of  2 variables:
+ $ x: chr  "low" "medium" "high"
+ $ y: int  1 2 3
+```
+--
+&lt;img src="https://media.giphy.com/media/d3mlE7uhX8KFgEmY/giphy.gif" width="640" style="display: block; margin: auto;" /&gt;
+
+---
+
+# What is a tibble?
+.pull-left[
+
+```r
+df[,1]
+```
+
+```
+# A tibble: 3 x 1
+  x     
+  &lt;chr&gt; 
+1 low   
+2 medium
+3 high  
+```
+
+```r
+df[1,]
+```
+
+```
+# A tibble: 1 x 2
+  x         y
+  &lt;chr&gt; &lt;int&gt;
+1 low       1
+```
+]
+.pull-right[
+
+```r
+df[1,2]
+```
+
+```
+# A tibble: 1 x 1
+      y
+  &lt;int&gt;
+1     1
+```
+]
+--
+.bottomright[
+&lt;img src="https://media.giphy.com/media/WLJ0XpwUxkHmg/giphy.gif" width="360" /&gt;
+]
+
+---
+class: center inverse middle
+
+# `%&gt;%`
+
+---
+# The pipe
+
+The **pipe** is an operator from the `magrittr` package.
+
+`df %&gt;% func(a,b)`
+
+is equivalent to
+
+`func(df, a, b)`.
+
+This makes it easy to couple functions together.
+
+--
+Instead of 
+
+`h(g(f(df, a, b), c))` .huge[😭]
+
+--
+
+we have
+
+`df %&gt;% f(a,b) %&gt;% g(c) %&gt;% h()` .huge[😀]
+
+---
+class: center inverse middle
+
+# dplyr
+---
+# dplyr
+
+A grammar of data manipulation, providing a consistent set of verbs that help solve the most common data manipulation challenges.
+
+--
+
+- `filter()` picks cases based on their values.
+- `arrange()` changes the order of the rows.
+- `select()` picks variables based on their names.
+- `mutate()` adds new variables that are functions of existing variables.
+- `summarise()` reduces multiple values down to a single summary.
+
+--
+
+These then combine with `group_by()` to perform the above by group.
+
+--
+
+`dplyr` abstracts over how the data are stored.
+
+ - It works with local data frames.
+ - It works with remote database tables.
+ - All using the same R code.
+
+---
+
+# filter
+
+
+```r
+roll %&gt;% filter(EthnicGroup == "Māori", Gender == "Female")
+```
+
+```
+# A tibble: 14,289 x 5
+   School            Gender EthnicGroup Level  Students
+   &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;     &lt;dbl&gt;
+ 1 Abbotsford School Female Māori       Year 1       10
+ 2 Abbotsford School Female Māori       Year 2        3
+ 3 Abbotsford School Female Māori       Year 3        2
+ 4 Abbotsford School Female Māori       Year 4        2
+ 5 Abbotsford School Female Māori       Year 5        5
+ 6 Abbotsford School Female Māori       Year 6        5
+ 7 Abbotsford School Female Māori       Year 7        2
+ 8 Abbotsford School Female Māori       Year 8        2
+ 9 Aberdeen School   Female Māori       Year 1       19
+10 Aberdeen School   Female Māori       Year 2       16
+# ... with 14,279 more rows
+```
+
+---
+
+# filter
+
+
+```r
+roll %&gt;% filter(Level == "Year 1" | Level == "Year 2",
+                Gender == "Male")
+```
+
+```
+# A tibble: 11,053 x 5
+   School            Gender EthnicGroup Level  Students
+   &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;     &lt;dbl&gt;
+ 1 Abbotsford School Male   European    Year 1       14
+ 2 Abbotsford School Male   Māori       Year 1        6
+ 3 Abbotsford School Male   European    Year 2       19
+ 4 Abbotsford School Male   Māori       Year 2        2
+ 5 Aberdeen School   Male   Asian       Year 1        6
+ 6 Aberdeen School   Male   European    Year 1       41
+ 7 Aberdeen School   Male   Māori       Year 1       20
+ 8 Aberdeen School   Male   Other       Year 1        4
+ 9 Aberdeen School   Male   Pasifika    Year 1        2
+10 Aberdeen School   Male   Asian       Year 2        6
+# ... with 11,043 more rows
+```
+
+---
+
+# arrange
+
+
+```r
+roll %&gt;% arrange(Gender, EthnicGroup, Level)
+```
+
+```
+# A tibble: 99,021 x 5
+   School                      Gender EthnicGroup Level  Students
+   &lt;chr&gt;                       &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;     &lt;dbl&gt;
+ 1 Abbotsford School           Female Asian       Year 1        1
+ 2 Aberdeen School             Female Asian       Year 1        5
+ 3 ACG Parnell College         Female Asian       Year 1        4
+ 4 ACG Strathallan             Female Asian       Year 1       10
+ 5 ACG Sunderland              Female Asian       Year 1        3
+ 6 Addington School            Female Asian       Year 1        6
+ 7 Adventure School            Female Asian       Year 1        2
+ 8 Aidanfield Christian School Female Asian       Year 1        4
+ 9 Al-Madinah School           Female Asian       Year 1       23
+10 Albany School               Female Asian       Year 1       24
+# ... with 99,011 more rows
+```
+
+---
+
+# arrange
+
+
+```r
+roll %&gt;% arrange(Gender, EthnicGroup, desc(Level))
+```
+
+```
+# A tibble: 99,021 x 5
+   School                         Gender EthnicGroup Level  Students
+   &lt;chr&gt;                          &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;     &lt;dbl&gt;
+ 1 ACG Parnell College            Female Asian       Year 9       24
+ 2 ACG Strathallan                Female Asian       Year 9       18
+ 3 ACG Sunderland                 Female Asian       Year 9        2
+ 4 ACG Tauranga                   Female Asian       Year 9        2
+ 5 Aidanfield Christian School    Female Asian       Year 9        1
+ 6 Al-Madinah School              Female Asian       Year 9       21
+ 7 Albany Junior High School      Female Asian       Year 9       19
+ 8 Alfriston College              Female Asian       Year 9       20
+ 9 Amuri Area School              Female Asian       Year 9        1
+10 Ao Tawhiti Unlimited Discovery Female Asian       Year 9        1
+# ... with 99,011 more rows
+```
+--
+.atright[
+&lt;img src="https://media.giphy.com/media/xUPGcz2H1TXdCz4suY/giphy.gif" width="390" /&gt;
+]
+
+---
+class: center middle inverse
+
+# Your turn
+
+---
+
+# top_n
+
+
+```r
+roll %&gt;% top_n(3, Students)
+```
+
+```
+# A tibble: 3 x 5
+  School                   Gender EthnicGroup Level   Students
+  &lt;chr&gt;                    &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;      &lt;dbl&gt;
+1 Hagley Community College Female European    Year 13      718
+2 Te Aho o Te Kura Pounamu Male   Māori       Year 11      390
+3 Te Aho o Te Kura Pounamu Female European    Year 13      685
+```
+
+---
+
+# select
+
+
+```r
+roll %&gt;% select(School, EthnicGroup, Students)
+```
+
+```
+# A tibble: 99,021 x 3
+   School            EthnicGroup Students
+   &lt;chr&gt;             &lt;chr&gt;          &lt;dbl&gt;
+ 1 Abbotsford School Asian              1
+ 2 Abbotsford School European          19
+ 3 Abbotsford School European          14
+ 4 Abbotsford School Māori             10
+ 5 Abbotsford School Māori              6
+ 6 Abbotsford School Asian              1
+ 7 Abbotsford School European          15
+ 8 Abbotsford School European          19
+ 9 Abbotsford School Māori              3
+10 Abbotsford School Māori              2
+# ... with 99,011 more rows
+```
+
+---
+
+# select
+
+
+```r
+roll %&gt;% select(-School)
+```
+
+```
+# A tibble: 99,021 x 4
+   Gender EthnicGroup Level  Students
+   &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;     &lt;dbl&gt;
+ 1 Female Asian       Year 1        1
+ 2 Female European    Year 1       19
+ 3 Male   European    Year 1       14
+ 4 Female Māori       Year 1       10
+ 5 Male   Māori       Year 1        6
+ 6 Female Asian       Year 2        1
+ 7 Female European    Year 2       15
+ 8 Male   European    Year 2       19
+ 9 Female Māori       Year 2        3
+10 Male   Māori       Year 2        2
+# ... with 99,011 more rows
+```
+
+---
+
+# select
+
+
+```r
+roll %&gt;% select(Gender:Level, Number=Students)
+```
+
+```
+# A tibble: 99,021 x 4
+   Gender EthnicGroup Level  Number
+   &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;   &lt;dbl&gt;
+ 1 Female Asian       Year 1      1
+ 2 Female European    Year 1     19
+ 3 Male   European    Year 1     14
+ 4 Female Māori       Year 1     10
+ 5 Male   Māori       Year 1      6
+ 6 Female Asian       Year 2      1
+ 7 Female European    Year 2     15
+ 8 Male   European    Year 2     19
+ 9 Female Māori       Year 2      3
+10 Male   Māori       Year 2      2
+# ... with 99,011 more rows
+```
+
+---
+
+# select
+
+
+```r
+roll %&gt;% select(Students, Level, everything())
+```
+
+```
+# A tibble: 99,021 x 5
+   Students Level  School            Gender EthnicGroup
+      &lt;dbl&gt; &lt;chr&gt;  &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;      
+ 1        1 Year 1 Abbotsford School Female Asian      
+ 2       19 Year 1 Abbotsford School Female European   
+ 3       14 Year 1 Abbotsford School Male   European   
+ 4       10 Year 1 Abbotsford School Female Māori      
+ 5        6 Year 1 Abbotsford School Male   Māori      
+ 6        1 Year 2 Abbotsford School Female Asian      
+ 7       15 Year 2 Abbotsford School Female European   
+ 8       19 Year 2 Abbotsford School Male   European   
+ 9        3 Year 2 Abbotsford School Female Māori      
+10        2 Year 2 Abbotsford School Male   Māori      
+# ... with 99,011 more rows
+```
+
+---
+
+# select
+
+
+```r
+roll %&gt;% select(starts_with("S"))
+```
+
+```
+# A tibble: 99,021 x 2
+   School            Students
+   &lt;chr&gt;                &lt;dbl&gt;
+ 1 Abbotsford School        1
+ 2 Abbotsford School       19
+ 3 Abbotsford School       14
+ 4 Abbotsford School       10
+ 5 Abbotsford School        6
+ 6 Abbotsford School        1
+ 7 Abbotsford School       15
+ 8 Abbotsford School       19
+ 9 Abbotsford School        3
+10 Abbotsford School        2
+# ... with 99,011 more rows
+```
+
+---
+
+# rename
+
+
+```r
+roll %&gt;% rename(Number = Students)
+```
+
+```
+# A tibble: 99,021 x 5
+   School            Gender EthnicGroup Level  Number
+   &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;   &lt;dbl&gt;
+ 1 Abbotsford School Female Asian       Year 1      1
+ 2 Abbotsford School Female European    Year 1     19
+ 3 Abbotsford School Male   European    Year 1     14
+ 4 Abbotsford School Female Māori       Year 1     10
+ 5 Abbotsford School Male   Māori       Year 1      6
+ 6 Abbotsford School Female Asian       Year 2      1
+ 7 Abbotsford School Female European    Year 2     15
+ 8 Abbotsford School Male   European    Year 2     19
+ 9 Abbotsford School Female Māori       Year 2      3
+10 Abbotsford School Male   Māori       Year 2      2
+# ... with 99,011 more rows
+```
+
+---
+
+# mutate
+
+
+```r
+roll %&gt;% mutate(Proportion = Students/n())
+```
+
+```
+# A tibble: 99,021 x 6
+   School            Gender EthnicGroup Level  Students Proportion
+   &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;       &lt;chr&gt;     &lt;dbl&gt;      &lt;dbl&gt;
+ 1 Abbotsford School Female Asian       Year 1        1  0.0000101
+ 2 Abbotsford School Female European    Year 1       19  0.000192 
+ 3 Abbotsford School Male   European    Year 1       14  0.000141 
+ 4 Abbotsford School Female Māori       Year 1       10  0.000101 
+ 5 Abbotsford School Male   Māori       Year 1        6  0.0000606
+ 6 Abbotsford School Female Asian       Year 2        1  0.0000101
+ 7 Abbotsford School Female European    Year 2       15  0.000151 
+ 8 Abbotsford School Male   European    Year 2       19  0.000192 
+ 9 Abbotsford School Female Māori       Year 2        3  0.0000303
+10 Abbotsford School Male   Māori       Year 2        2  0.0000202
+# ... with 99,011 more rows
+```
+
+---
+
+# mutate
+
+
+```r
+clean = roll %&gt;% mutate(Level = substring(Level, 6),
+                        Level = as.numeric(Level))
+clean
+```
+
+```
+# A tibble: 99,021 x 5
+   School            Gender EthnicGroup Level Students
+   &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt;
+ 1 Abbotsford School Female Asian           1        1
+ 2 Abbotsford School Female European        1       19
+ 3 Abbotsford School Male   European        1       14
+ 4 Abbotsford School Female Māori           1       10
+ 5 Abbotsford School Male   Māori           1        6
+ 6 Abbotsford School Female Asian           2        1
+ 7 Abbotsford School Female European        2       15
+ 8 Abbotsford School Male   European        2       19
+ 9 Abbotsford School Female Māori           2        3
+10 Abbotsford School Male   Māori           2        2
+# ... with 99,011 more rows
+```
+
+--
+.atright[
+&lt;img src="https://media.giphy.com/media/WTiMvyam361C8/giphy.gif" width="540" /&gt;
+]
+---
+class: center middle inverse
+
+# Your turn
+
+---
+
+# summarise
+
+
+```r
+clean %&gt;% summarise(Rows = n(), Total = sum(Students),
+                    Average = Total/Rows)
+```
+
+```
+# A tibble: 1 x 3
+   Rows  Total Average
+  &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;
+1 99021 800334    8.08
+```
+
+---
+
+# summarise
+
+How many students were in year 13 at Awatapu College in 2017?
+
+
+```r
+clean %&gt;%
+  filter(School == "Awatapu College", Level == 13) %&gt;%
+  summarise(Students = sum(Students))
+```
+
+```
+# A tibble: 1 x 1
+  Students
+     &lt;dbl&gt;
+1      105
+```
+
+---
+
+# group_by
+
+`group_by` splits the data frame up into groups.
+
+All other verbs then operate per-group.
+
+
+```r
+clean %&gt;% group_by(School) %&gt;% head
+```
+
+```
+# A tibble: 6 x 5
+# Groups:   School [1]
+  School            Gender EthnicGroup Level Students
+  &lt;chr&gt;             &lt;chr&gt;  &lt;chr&gt;       &lt;dbl&gt;    &lt;dbl&gt;
+1 Abbotsford School Female Asian           1        1
+2 Abbotsford School Female European        1       19
+3 Abbotsford School Male   European        1       14
+4 Abbotsford School Female Māori           1       10
+5 Abbotsford School Male   Māori           1        6
+6 Abbotsford School Female Asian           2        1
+```
+--
+
+```r
+clean %&gt;% group_by(School) %&gt;% class
+```
+
+```
+[1] "grouped_df" "tbl_df"     "tbl"        "data.frame"
+```
+
+---
+
+# group_by
+
+
+```r
+clean %&gt;% group_by(School) %&gt;%
+  summarise(Students = sum(Students))
+```
+
+```
+# A tibble: 2,530 x 2
+   School                                Students
+   &lt;chr&gt;                                    &lt;dbl&gt;
+ 1 Abbotsford School                          277
+ 2 Aberdeen School                            719
+ 3 Aberfeldy School                            15
+ 4 ACG New Zealand International College      658
+ 5 ACG Parnell College                        802
+ 6 ACG Senior College                         229
+ 7 ACG Strathallan                            884
+ 8 ACG Sunderland                             322
+ 9 ACG Tauranga                               121
+10 Addington School                           242
+# ... with 2,520 more rows
+```
+--
+.atright[
+&lt;img src="https://media.giphy.com/media/xT5LMEcHRXKXpIHCCI/giphy.gif" width="580" /&gt;
+]
+---
+
+# group_by
+
+
+```r
+clean %&gt;%
+  filter(Level &gt;= 11) %&gt;%
+  group_by(School, Level) %&gt;%
+  summarise(Students = sum(Students))
+```
+
+```
+# A tibble: 1,822 x 3
+# Groups:   School [?]
+   School                                Level Students
+   &lt;chr&gt;                                 &lt;dbl&gt;    &lt;dbl&gt;
+ 1 ACG New Zealand International College    11       99
+ 2 ACG New Zealand International College    12       36
+ 3 ACG New Zealand International College    13       84
+ 4 ACG New Zealand International College    14      400
+ 5 ACG Parnell College                      11       93
+ 6 ACG Parnell College                      12      112
+ 7 ACG Parnell College                      13      107
+ 8 ACG Parnell College                      14       20
+ 9 ACG Senior College                       11       46
+10 ACG Senior College                       12      105
+# ... with 1,812 more rows
+```
+--
+.atright[
+&lt;img src="https://media.giphy.com/media/19U2aQ323iGtO/giphy.gif" width="500" /&gt;
+]
+---
+
+# group_by
+
+
+```r
+clean %&gt;%
+  filter(EthnicGroup == "Pasifika") %&gt;%
+  group_by(School, Gender) %&gt;%
+  summarise(Students = sum(Students)) %&gt;%
+  mutate(Total = sum(Students)) %&gt;%
+  arrange(desc(Total))
+```
+
+```
+# A tibble: 3,488 x 4
+# Groups:   School [1,965]
+   School                Gender Students Total
+   &lt;chr&gt;                 &lt;chr&gt;     &lt;dbl&gt; &lt;dbl&gt;
+ 1 Southern Cross Campus Female      656  1284
+ 2 Southern Cross Campus Male        628  1284
+ 3 Manurewa High School  Female      551  1098
+ 4 Manurewa High School  Male        547  1098
+ 5 Aorere College        Female      432   864
+ 6 Aorere College        Male        432   864
+ 7 De La Salle College   Male        863   863
+ 8 Otahuhu College       Female      339   714
+ 9 Otahuhu College       Male        375   714
+10 Avondale College      Female      374   706
+# ... with 3,478 more rows
+```
+
+--
+.atright[
+&lt;img src="https://d27ql944xr9meu.cloudfront.net/9b87fd94cdf2f58fcc5307419c45e429%2F565x0xwidth%2F75%2Fhttps%2Fs-media-cache-ak0.pinimg.com%2Fuloop%2Fr%3D305%2Fjpg%2Foriginals%2F42%2Fae%2F61%2F42ae61533b2a8c23b36e14e85a4aeb82.jpg" width="600" /&gt;
+]
+---
+class: center middle inverse
+
+# Your turn
+
+---
+class: center inverse middle
+
+# tidyr
+
+---
+
+# tidyr
+
+The goal is to create **tidy data**. Data where:
+
+1. Each variable is a column.
+2. Each observation is a row.
+3. Each value is a cell.
+
+--
+
+Two key verbs:
+
+ - `gather()` takes multiple columns and gathers them into key-value pairs. Makes wide data long.
+ - `spread()` takes two columns (key, value) and spreads them over multiple column. Makes long data wide.
+
+--
+
+Other useful verbs:
+
+ - `separate()` and `extract()` pulls apart a column that represents multiple variables (e.g. dates?)
+ - `replace_na()` and `drop_na()` for control of missing values.
+
+---
+# gather
+
+Gather is useful where we have observations spread across columns (often columns values). It takes wide data to long.
+
+```r
+wide = tibble(id = 1:4, week1 = rnorm(4),
+              week2 = rnorm(4), week3 = rnorm(4))
+wide
+```
+
+```
+# A tibble: 4 x 4
+     id  week1   week2   week3
+  &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+1     1  0.464  0.170   0.484 
+2     2  0.296 -1.22   -0.262 
+3     3 -1.68   0.0647  0.420 
+4     4  0.738 -0.244   0.0255
+```
+
+--
+Here the `week` columns are the value that the variable `week` takes. And we have 3 observations for id 1 spread
+across columns.
+
+---
+
+# gather
+
+A tidy version would have three variables and 12 observations.
+
+
+```r
+wide %&gt;% gather(week, value, week1:week3)
+```
+
+```
+# A tibble: 12 x 3
+      id week    value
+   &lt;int&gt; &lt;chr&gt;   &lt;dbl&gt;
+ 1     1 week1  0.464 
+ 2     2 week1  0.296 
+ 3     3 week1 -1.68  
+ 4     4 week1  0.738 
+ 5     1 week2  0.170 
+ 6     2 week2 -1.22  
+ 7     3 week2  0.0647
+ 8     4 week2 -0.244 
+ 9     1 week3  0.484 
+10     2 week3 -0.262 
+11     3 week3  0.420 
+12     4 week3  0.0255
+```
+
+---
+
+# gather
+
+`readr::parse_number` is a handy function to pull numbers out of strings.
+
+```r
+long = wide %&gt;% gather(week, value, week1:week3) %&gt;%
+  mutate(week = readr::parse_number(week))
+long
+```
+
+```
+# A tibble: 12 x 3
+      id  week   value
+   &lt;int&gt; &lt;dbl&gt;   &lt;dbl&gt;
+ 1     1     1  0.464 
+ 2     2     1  0.296 
+ 3     3     1 -1.68  
+ 4     4     1  0.738 
+ 5     1     2  0.170 
+ 6     2     2 -1.22  
+ 7     3     2  0.0647
+ 8     4     2 -0.244 
+ 9     1     3  0.484 
+10     2     3 -0.262 
+11     3     3  0.420 
+12     4     3  0.0255
+```
+
+---
+# gather
+
+Once gathered, we can easily compute summaries on groups:
+
+```r
+long %&gt;% group_by(week) %&gt;% summarise(mean=mean(value))
+```
+
+```
+# A tibble: 3 x 2
+   week    mean
+  &lt;dbl&gt;   &lt;dbl&gt;
+1     1 -0.0445
+2     2 -0.307 
+3     3  0.167 
+```
+
+```r
+long %&gt;% group_by(id) %&gt;% summarise(lowest=min(value))
+```
+
+```
+# A tibble: 4 x 2
+     id lowest
+  &lt;int&gt;  &lt;dbl&gt;
+1     1  0.170
+2     2 -1.22 
+3     3 -1.68 
+4     4 -0.244
+```
+---
+
+# spread
+
+`spread()` does the opposite:
+
+```r
+long %&gt;% spread(week, value)
+```
+
+```
+# A tibble: 4 x 4
+     id    `1`     `2`     `3`
+  &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+1     1  0.464  0.170   0.484 
+2     2  0.296 -1.22   -0.262 
+3     3 -1.68   0.0647  0.420 
+4     4  0.738 -0.244   0.0255
+```
+---
+
+# spread
+
+Using numbers for columns can be a bit fiddly to work with.
+
+
+```r
+long %&gt;% spread(week, value, sep='_')
+```
+
+```
+# A tibble: 4 x 4
+     id week_1  week_2  week_3
+  &lt;int&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+1     1  0.464  0.170   0.484 
+2     2  0.296 -1.22   -0.262 
+3     3 -1.68   0.0647  0.420 
+4     4  0.738 -0.244   0.0255
+```
+
+A separator codes the columns as `&lt;key_name&gt;&lt;sep&gt;&lt;key_value&gt;`.
+
+---
+
+# spread
+
+
+```r
+clean %&gt;%
+  filter(EthnicGroup == "Pasifika") %&gt;%
+  group_by(School, Gender) %&gt;%
+  summarise(Students = sum(Students)) %&gt;%
+  spread(Gender, Students) %&gt;%
+  mutate(Total = Male + Female) %&gt;%
+  arrange(desc(Total))
+```
+
+```
+# A tibble: 1,965 x 4
+# Groups:   School [1,965]
+   School                   Female  Male Total
+   &lt;chr&gt;                     &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+ 1 Southern Cross Campus       656   628  1284
+ 2 Manurewa High School        551   547  1098
+ 3 Aorere College              432   432   864
+ 4 Otahuhu College             339   375   714
+ 5 Avondale College            374   332   706
+ 6 Tangaroa College            314   322   636
+ 7 Mt Albert Grammar School    261   318   579
+ 8 Viscount School             290   250   540
+ 9 Onehunga High School        283   256   539
+10 Mangere College             263   261   524
+# ... with 1,955 more rows
+```
+
+--
+.atright[
+&lt;img src="https://media.giphy.com/media/6y17pgEsBdN7y/giphy.gif" width="600" /&gt;
+]
+
+---
+class: center middle inverse
+
+# Your turn
+
+---
+class: middle inverse center
+
+# joins
+
+---
+# left_join
+
+`left_join(x, y)` merges the data frames `x` and `y` on common (or specified) columns.
+  - All columns from `x` and `y` are retained.
+  - All rows from `x` are retained.
+  - If multiple rows of `y` match `x`, all matches are returned (duplicating the `x` rows).
+  - If no rows of `y` match, they'll be filled with `NA`.
+
+--
+
+There's 5 other joins:
+ - `right_join`
+ - `inner_join`
+ - `full_join`
+ - `semi_join`
+ - `anti_join`
+
+`left_join` is the one I use the most.
+---
+# left_join
+
+
+```r
+clean %&gt;% group_by(School) %&gt;%
+  summarise(Students = sum(Students)) %&gt;%
+  left_join(schools, by='School') %&gt;%
+  select(School, Students, TerritorialAuthority)
+```
+
+```
+# A tibble: 2,530 x 3
+   School                               Students TerritorialAuthority     
+   &lt;chr&gt;                                   &lt;dbl&gt; &lt;chr&gt;                    
+ 1 Abbotsford School                         277 Dunedin                  
+ 2 Aberdeen School                           719 Hamilton                 
+ 3 Aberfeldy School                           15 Wanganui                 
+ 4 ACG New Zealand International Colle…      658 Auckland: Waitemata      
+ 5 ACG Parnell College                       802 Auckland: Waitemata      
+ 6 ACG Senior College                        229 Auckland: Waitemata      
+ 7 ACG Strathallan                           884 Auckland: Papakura       
+ 8 ACG Sunderland                            322 Auckland: Henderson-Mass…
+ 9 ACG Tauranga                              121 Western Bay of Plenty    
+10 Addington School                          242 Christchurch             
+# ... with 2,520 more rows
+```
+--
+.topright[
+&lt;img src="https://media.giphy.com/media/3o7btNhMBytxAM6YBa/giphy.gif" width="540" /&gt;
+]
+
+---
+class: middle inverse center
+
+# Your turn
+    </textarea>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function() {
+  var d = document, s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})();</script>
+
+<script>
+(function() {
+  var i, text, code, codes = document.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+})();
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://cdn.bootcss.com/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
