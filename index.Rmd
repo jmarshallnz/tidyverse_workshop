@@ -1,0 +1,15 @@
+---
+title: "Introduction to the tidyverse"
+subtitle: "dplyr and tidyr"
+author: "Jonathan Marshall"
+date: "9 October 2018"
+output: html_document
+---
+
+## Slides
+
+The slides for the workshop [are here](slides.html)
+
+A zip file with workshop sheet and data [is here](tidyverse.zip)
+
+Solutions (well, Jonathan's attempt!) [are here](tidyverse_jm.Rmd)
