@@ -21,13 +21,13 @@ https://www.educationcounts.govt.nz/statistics/schooling/student-numbers/6028
 
 We have information on the student counts in `roll`:
 
-```{r}
+```{r roll_data}
 roll
 ```
 
 and information on each school in `schools`:
 
-```{r}
+```{r schools_data}
 schools
 ```
 
@@ -35,7 +35,7 @@ schools
 
 The pipe operator `%>%` from the `magrittr` package passes the expression on the left into the function on the right as it's first argument. The following are equivalent:
 
-```{r}
+```{r the_pipe}
 nrow(roll)
 roll %>% nrow()
 ```
@@ -61,7 +61,7 @@ These then combine with `group_by()` to perform the above by group.
  - Expressions separated by comma's must both hold (logical AND).
  - You can use `|` for logical OR.
 
-```{r}
+```{r filtering}
 roll %>% filter(EthnicGroup == "Maori", Gender == "Female")
 roll %>% filter(Level == "Year 1" | Level == "Year 2", Gender == "Male")
 ```
@@ -78,7 +78,7 @@ roll %>% filter(Level == "Year 1" | Level == "Year 2", Gender == "Male")
 
 - You can use `desc()` to sort in descending order.
 
-```{r}
+```{r arranging}
 roll %>% arrange(Gender, EthnicGroup, Level)
 ```
 
@@ -97,7 +97,7 @@ roll %>% arrange(Gender, EthnicGroup, Level)
 - `everything()` will return all remaining columns.
 - `starts_with()` can be handy if you have several columns with a common prefix.
 
-```{r}
+```{r selecting}
 roll %>% select(School, EthnicGroup, Students)
 roll %>% select(-School, Number=Students)
 roll %>% select(Students, Level, everything())
@@ -115,7 +115,7 @@ roll %>% select(Students, Level, everything())
 
 - You can overwrite existing variables as well.
 
-```{r}
+```{r mutating}
 roll %>% mutate(Proportion = Students/n())
 clean = roll %>% mutate(Level = as.numeric(substring(Level, 6)))
 ```
@@ -133,7 +133,7 @@ clean = roll %>% mutate(Level = as.numeric(substring(Level, 6)))
 - You can use the summarised value in later expressions within the same summary.
 - `n()` gives the number of rows.
 
-```{r}
+```{r summarising}
 clean %>% summarise(Rows = n(), Total = sum(Students), Average = Total/Rows)
 ```
 
@@ -148,7 +148,7 @@ clean %>% summarise(Rows = n(), Total = sum(Students), Average = Total/Rows)
 
 - All other verbs then operate per-group.
 
-```{r}
+```{r grouping}
 clean %>% group_by(School) %>% summarise(Students = sum(Students))
 ```
 
@@ -182,7 +182,7 @@ Other useful verbs:
 
 `gather()` makes wide data long.
 
-```{r}
+```{r gathering}
 wide = tibble(id = 1:4, week1 = rnorm(4),
               week2 = rnorm(4), week3 = rnorm(4))
 wide
@@ -201,7 +201,7 @@ long
 
 `spread()` makes long data wide.
 
-```{r}
+```{r spreading}
 long %>% spread(week, value, sep='_')
 ```
 
@@ -229,7 +229,7 @@ There are five other joins in `dplyr`, and others in other packages:
 - `semi_join`
 - `anti_join`
 
-```{r}
+```{r joining}
 all = clean %>% left_join(schools, by='School')
 all
 ```
