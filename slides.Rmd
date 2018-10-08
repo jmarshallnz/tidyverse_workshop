@@ -127,7 +127,7 @@ str(df)
 ```
 
 --
-```{r, echo=FALSE, fig.align='center', out.width=480}
+```{r, echo=FALSE, fig.align='center', out.width=640}
 knitr::include_graphics('https://media.giphy.com/media/iAYupOdWXQy5a4nVGk/giphy.gif')
 ```
 
@@ -159,23 +159,27 @@ df = tibble(x=c('low', 'medium', 'high'), y=1:3)
 str(df)
 ```
 --
-```{r, echo=FALSE, out.width=480, fig.align='center'}
+```{r, echo=FALSE, out.width=640, fig.align='center'}
 knitr::include_graphics('https://media.giphy.com/media/d3mlE7uhX8KFgEmY/giphy.gif')
 ```
 
 ---
 
 # What is a tibble?
-.smallfonts.pull-left[
+.pull-left[
 ```{r}
 df[,1]
 df[1,]
+```
+]
+.pull-right[
+```{r}
 df[1,2]
 ```
 ]
 --
-.pull-right[
-```{r, echo=FALSE, out.width=480}
+.bottomright[
+```{r, echo=FALSE, out.width=360}
 knitr::include_graphics('https://media.giphy.com/media/WLJ0XpwUxkHmg/giphy.gif')
 ```
 ]
@@ -271,8 +275,8 @@ roll %>% arrange(Gender, EthnicGroup, Level)
 roll %>% arrange(Gender, EthnicGroup, desc(Level))
 ```
 --
-.pull-right[
-```{r, echo=FALSE}
+.atright[
+```{r, echo=FALSE, out.width=390}
 knitr::include_graphics('https://media.giphy.com/media/xUPGcz2H1TXdCz4suY/giphy.gif')
 ```
 ]
@@ -357,8 +361,8 @@ clean
 ```
 
 --
-.atbottom[
-```{r, echo=FALSE, out.width=480}
+.atright[
+```{r, echo=FALSE, out.width=540}
 knitr::include_graphics('https://media.giphy.com/media/WTiMvyam361C8/giphy.gif')
 ```
 ]
@@ -412,7 +416,12 @@ clean %>% group_by(School) %>% class
 clean %>% group_by(School) %>%
   summarise(Students = sum(Students))
 ```
-
+--
+.atright[
+```{r, echo=FALSE, out.width=580}
+knitr::include_graphics('https://media.giphy.com/media/xT5LMEcHRXKXpIHCCI/giphy.gif')
+```
+]
 ---
 
 # group_by
@@ -423,7 +432,12 @@ clean %>%
   group_by(School, Level) %>%
   summarise(Students = sum(Students))
 ```
-
+--
+.atright[
+```{r, echo=FALSE, out.width=500}
+knitr::include_graphics('https://media.giphy.com/media/19U2aQ323iGtO/giphy.gif')
+```
+]
 ---
 
 # group_by
@@ -439,8 +453,8 @@ clean %>%
 
 --
 .atright[
-```{r, echo=FALSE, out.width=320}
-knitr::include_graphics('https://media.giphy.com/media/19U2aQ323iGtO/giphy.gif')
+```{r, echo=FALSE, out.width=600}
+knitr::include_graphics('https://d27ql944xr9meu.cloudfront.net/9b87fd94cdf2f58fcc5307419c45e429%2F565x0xwidth%2F75%2Fhttps%2Fs-media-cache-ak0.pinimg.com%2Fuloop%2Fr%3D305%2Fjpg%2Foriginals%2F42%2Fae%2F61%2F42ae61533b2a8c23b36e14e85a4aeb82.jpg')
 ```
 ]
 ---
@@ -556,7 +570,7 @@ clean %>%
 
 --
 .atright[
-```{r, echo=FALSE, out.width=320}
+```{r, echo=FALSE, out.width=600}
 knitr::include_graphics('https://media.giphy.com/media/6y17pgEsBdN7y/giphy.gif')
 ```
 ]
@@ -601,7 +615,7 @@ clean %>% group_by(School) %>%
 ```
 --
 .topright[
-```{r, echo=FALSE, out.width=360}
+```{r, echo=FALSE, out.width=540}
 knitr::include_graphics('https://media.giphy.com/media/3o7btNhMBytxAM6YBa/giphy.gif')
 ```
 ]
