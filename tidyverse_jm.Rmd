@@ -1,0 +1,313 @@
+---
+title: "Tidyverse workshop"
+author: "CHANGE ME"
+date: "6 October 2018"
+output: html_document
+---
+
+# Getting started
+
+Make sure you've got the `tidyverse` meta-package installed, and run the chunk below.
+
+```{r setup}
+library(tidyverse)
+roll = readRDS('data/roll.rds')
+schools = readRDS('data/schools.rds')
+```
+
+The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2017. We have information on the student counts in `roll`:
+
+```{r}
+roll
+```
+
+and information on each school in `schools`:
+
+```{r}
+schools
+```
+
+# `%>%`
+
+The pipe operator `%>%` from the `magittr` package passes the expression on the left into the function on the right as it's first argument. The following are equivalent:
+
+```{r}
+nrow(roll)
+roll %>% nrow()
+```
+
+This makes it easy to couple multiple functions together, passing the result from the first into the second, then into the third and so on.
+
+# dplyr
+
+There are 5 key verbs in dplyr:
+
+- `filter()` picks rows based on their values.
+- `arrange()` changes the order of rows.
+- `select()` picks columns based on their names.
+- `mutate()` adds new variables that are functions of existing variables.
+- `summarise()` reduces multiple values down to a single summary.
+
+These then combine with `group_by()` to perform the above by group.
+
+## filter
+
+`filter()` picks rows based on their values. It's similar to `subset` in base R.
+
+ - Expressions separated by comma's must both hold (logical AND).
+ - You can use `|` for logical OR.
+
+```{r}
+roll %>% filter(EthnicGroup == "Maori", Gender == "Female")
+roll %>% filter(Level == "Year 1" | Level == "Year 2", Gender == "Male")
+```
+
+**Try yourself**
+
+1. Find all rows corresponding to Queen Elizabeth College students in Year 9.
+2. Find all rows where there are more than 100 Year 9 Asian students.
+3. Find all schools in Palmerston North.
+
+```{r}
+roll %>% filter(School == "Queen Elizabeth College", Level == "Year 9")
+roll %>% filter(EthnicGroup == "Asian", Level == "Year 9", Students > 100)
+schools %>% filter(TerritorialAuthority == "Palmerston North")
+```
+
+## arrange
+
+`arrange()` changes the order of rows. It's similar to using `order()` followed by indexing in base R.
+
+- You can use `desc()` to sort in descending order.
+
+```{r}
+roll %>% arrange(Gender, EthnicGroup, Level)
+```
+
+**Try yourself**
+
+1. Arrange the roll rows by number of students.
+2. Arrange the schools by descending decile.
+3. Find all Primary schools in Palmerston North, arranged by decile.
+
+```{r}
+roll %>% arrange(Students)
+schools %>% arrange(desc(Decile))
+schools %>% filter(TerritorialAuthority == "Palmerston North", Sector == "Primary") %>% arrange(Decile)
+```
+
+## select
+
+`select()` picks columns based on their name.
+ 
+- Ranges can be used using `A:C` to pick columns A through C
+- Columns can be removed through negation `-A`.
+- `everything()` will return all remaining columns.
+- `starts_with()` can be handy if you have several columns with a common prefix.
+
+```{r}
+roll %>% select(School, EthnicGroup, Students)
+roll %>% select(-School, Number=Students)
+roll %>% select(Students, Level, everything())
+```
+
+**Try yourself**
+
+1. Rearrange the `schools` data set so that `School` and `Decile` are first.
+2. Rename the `School` column to `Name` keeping all other columns.
+3. Try part 2 using `rename` instead of `select`.
+
+```{r}
+schools %>% select(School, Decile, everything())
+schools %>% select(Name = School, everything())
+schools %>% rename(Name = School)
+```
+
+## mutate
+
+`mutate()` adds new variables using functions of existing columns.
+
+- You can overwrite existing variables as well.
+
+```{r}
+roll %>% mutate(Proportion = Students/n())
+clean = roll %>% mutate(Level = as.numeric(substring(Level, 6)))
+```
+
+**Try yourself**
+
+1. Using the `clean` dataset, create a new column combining ethnicgroup and gender with `paste`.
+2. Redo part 1, so that the original two columns are removed.
+3. Investigate using the `unite` function from `tidyr` to do the same thing.
+
+```{r}
+clean %>% mutate(EthnicGender = paste(EthnicGroup, Gender))
+clean %>% mutate(EthnicGender = paste(EthnicGroup, Gender)) %>%
+  select(-EthnicGroup, -Gender)
+clean %>% unite(EthnicGender, EthnicGroup, Gender, sep=" ")
+```
+
+## summarise
+
+`summarise()` reduces multiple values down to a single summary.
+
+- You can use the summarised value in later expressions within the same summary.
+- `n()` gives the number of rows.
+
+```{r}
+clean %>% summarise(Rows = n(), Total = sum(Students), Average = Total/Rows)
+```
+
+**Try yourself**
+
+1. Find the mean decile of schools in Palmerston North.
+2. Find the number of Maori students in year 9.
+
+```{r}
+schools %>% filter(TerritorialAuthority == "Palmerston North") %>%
+  summarise(mean(Decile))
+clean %>% filter(EthnicGroup == "Maori", Level == 9) %>%
+  summarise(sum(Students))
+```
+
+## group_by
+
+`group_by()` collects rows together to be treated as a unit.
+
+- All other verbs then operate per-group.
+
+```{r}
+clean %>% group_by(School) %>% summarise(Students = sum(Students))
+```
+
+**Try yourself**
+
+1. How many schools are there in each Territorial Authority?
+2. How many students of each ethnicity are there?
+3. How many schools are there in Auckland versus outside Auckland *hint: create a new column, then group_by, summarise*.
+4. Which school has the most female students in year 13?
+
+```{r}
+schools %>% group_by(TerritorialAuthority) %>% summarise(Count = n())
+clean %>% group_by(EthnicGroup) %>% summarise(Students = sum(Students))
+schools %>% mutate(Auckland = str_detect(TerritorialAuthority, "Auckland")) %>%
+  group_by(Auckland) %>% summarise(Count = n())
+clean %>% filter(Gender == "Female", Level == 13) %>%
+  group_by(School) %>% summarise(Students = sum(Students)) %>%
+  top_n(1, Students)
+```
+
+# tidyr
+
+The goal is to create **tidy data** where:
+
+1. Each variable is a column.
+2. Each observation is a row.
+3. Each value is a cell.
+
+Two key verbs:
+
+ - `gather()` takes multiple columns and gathers them into key-value pairs. Makes wide data long.
+ - `spread()` takes two columns (key, value) and spreads them over multiple column. Makes long data wide.
+
+Other useful verbs:
+
+ - `separate()` and `extract()` pulls apart a column that represents multiple variables.
+ - `unite()` combines columns`.
+ - `replace_na()` and `drop_na()` for control of missing values.
+
+## gather
+
+`gather()` makes wide data long.
+
+```{r}
+wide = tibble(id = 1:4, week1 = rnorm(4),
+              week2 = rnorm(4), week3 = rnorm(4))
+wide
+wide %>% gather(week, value, week1:week3)
+```
+
+Often when gathering columns (particularly multiple measures) you want to extract some information out of the gathered column names. e.g. extract which week it is, instead of having `week1`, `week2`, `week3`. We can use `extract()` for that with a regular expression.
+
+```{r}
+long = wide %>% gather(week, value, week1:week3) %>%
+  extract(week, 'week', '([0-9])', convert=TRUE)
+long
+```
+
+## spread
+
+`spread()` makes long data wide.
+
+```{r}
+long %>% spread(week, value, sep='_')
+```
+
+**Try yourself**
+
+1. Try spreading the number of students in the `clean` roll across male and females.
+2. Notice you get `NA` values. This is because there are no Asian boys in level 1 at Abbotsford School for example. Figure out how to replace these with zeros while doing the `spread`.
+3. Produce a table of gender by year level for all students 
+4. Produce the same table, but for the proportion of male and female students at each year level.
+
+```{r}
+clean %>% spread(Gender, Students)
+clean %>% spread(Gender, Students, fill=0)
+clean %>% group_by(Level, Gender) %>% summarise(Students = sum(Students)) %>%
+  spread(Gender, Students)
+clean %>% group_by(Level, Gender) %>% summarise(Students = sum(Students)) %>%
+  mutate(Proportion = Students/sum(Students)) %>%
+  select(-Students) %>%
+  spread(Gender, Proportion)
+```
+
+## left_join
+
+`left_join(x, y)` merges the data frames `x` and `y` on common (or specified) columns.
+
+- All columns from `x` and `y` are retained.
+- All rows from `x` are retained.
+- If multiple rows of `y` match `x`, all matches are returned (duplicating the `x` rows).
+- If no rows of `y` match, they'll be filled with `NA`.
+
+There are five other joins in `dplyr`, and others in other packages:
+
+- `right_join`
+- `inner_join`
+- `full_join`
+- `semi_join`
+- `anti_join`
+
+```{r}
+all = clean %>% left_join(schools, by='School')
+all
+```
+
+**Your turn**
+
+1. Find the number of students per regional council.
+2. Table up the number of students of each ethnicity, ignoring international fee paying students in each regional council.
+3. How many students of each ethnicity are in partnership (charter) schools? (See the `Authority` variable).
+4. How many girls and boys are in schools with a religious affiliation?
+5. Compare the ethnic makeup of secondary schools in Decile 10 versus those in Decile 1, excluding international fee paying students by producing a table of proportions by decile.
+6. Try and add a Total column to your table in 2.
+
+```{r}
+all %>% group_by(RegionalCouncil) %>%
+  summarise(Students = sum(Students))
+all %>% filter(EthnicGroup != "International fee paying") %>%
+  group_by(RegionalCouncil, EthnicGroup) %>% summarise(Students = sum(Students)) %>%
+  spread(EthnicGroup, Students, fill=0)
+all %>% filter(Authority == "Partnership School") %>% group_by(EthnicGroup) %>%
+  summarise(Students = sum(Students))
+all %>% filter(AffiliationType == "Religious Affiliation") %>%
+  group_by(Gender) %>% summarise(Students = sum(Students))
+all %>% filter(Decile %in% c(1, 10), EthnicGroup != "International fee paying") %>% group_by(Decile, EthnicGroup) %>%
+  summarise(Students = sum(Students)) %>% mutate(Proportion = Students/sum(Students)) %>%
+  select(-Students) %>% spread(EthnicGroup, Proportion)
+all %>% filter(EthnicGroup != "International fee paying") %>%
+  group_by(RegionalCouncil, EthnicGroup) %>% summarise(Students = sum(Students)) %>%
+  mutate(Total = sum(Students)) %>%
+  spread(EthnicGroup, Students, fill=0) %>% select(-Total, everything(), Total)
+```
+**What other things can you find using these data?**
