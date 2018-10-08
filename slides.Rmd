@@ -145,9 +145,16 @@ df[1,2]
 ]
 --
 
-.pull-right[
+.bottomright[
 ```{r, echo=FALSE, out.width=480}
 knitr::include_graphics('https://media.giphy.com/media/y3QOvy7xxMwKI/giphy.gif')
+```
+]
+--
+
+.topright[
+```{r, echo=FALSE, out.width=480}
+knitr::include_graphics('images/matrix_delete.png')
 ```
 ]
 
