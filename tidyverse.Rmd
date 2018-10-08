@@ -33,7 +33,7 @@ schools
 
 # `%>%`
 
-The pipe operator `%>%` from the `magittr` package passes the expression on the left into the function on the right as it's first argument. The following are equivalent:
+The pipe operator `%>%` from the `magrittr` package passes the expression on the left into the function on the right as it's first argument. The following are equivalent:
 
 ```{r}
 nrow(roll)

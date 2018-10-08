@@ -201,7 +201,7 @@ class: center inverse middle
 ---
 # The pipe
 
-The **pipe** is an operator from the `magittr` package.
+The **pipe** is an operator from the `magrittr` package.
 
 `df %>% func(a,b)`
 
