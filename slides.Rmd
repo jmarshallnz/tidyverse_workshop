@@ -58,6 +58,7 @@ Each row represents a school, gender, ethnic group and level.
 roll
 ```
 
+Data source: https://www.educationcounts.govt.nz/statistics/schooling/student-numbers/6028
 ---
 
 # schools
@@ -67,6 +68,7 @@ Information on each school, including type, affiliation and region.
 schools
 ```
 
+Data source: https://www.educationcounts.govt.nz/statistics/schooling/student-numbers/6028
 ---
 class: inverse, center, middle
 

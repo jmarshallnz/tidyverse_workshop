@@ -15,7 +15,11 @@ roll = readRDS('data/roll.rds')
 schools = readRDS('data/schools.rds')
 ```
 
-The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2017. We have information on the student counts in `roll`:
+The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2017. Data source is
+
+https://www.educationcounts.govt.nz/statistics/schooling/student-numbers/6028
+
+We have information on the student counts in `roll`:
 
 ```{r}
 roll
